@@ -43,27 +43,27 @@ with open('unigram_inverted_index', 'rb') as handle:
 	b = pickle.load(handle)
 
 
-def AND(documents1, documents2):
+def AND(documents2, documents1):
 	documents = []
 	comparisons = 0
 
 	while len(documents1) > 0 and len(documents2) > 0:
-		if (documents1[0] > documents2[0]):
+		if documents1[zerothInd] > documents2[zerothInd]:
 			comparisons = comparisons + 1
-			documents2 = documents2[1:]
-		elif (documents1[0] < documents2[0]):
+			documents2 = documents2[firstInd]
+		elif documents1[zerothInd] < documents2[zerothInd]:
 			comparisons = comparisons + 1
-			documents1 = documents1[1:]
+			documents1 = documents1[firstInd]
 		else:
 			comparisons = comparisons + 1
-			documents.append(documents1[0])
-			documents1 = documents1[1:]
-			documents2 = documents2[1:]
+			documents.append(documents1[zerothInd])
+			documents1 = documents1[firstInd]
+			documents2 = documents2[firstInd]
 
 	return documents, comparisons
 
 
-def OR(documents1, documents2):
+def OR(documents2, documents1):
 	documents, comparisons = [], 0
 
 	while len(documents1) > 0 and len(documents2) > 0:
@@ -92,27 +92,27 @@ def OR(documents1, documents2):
 	return documents, comparisons
 
 
-def AND_NOT(documents1, documents2):
-	common_documents, comparisons = AND(documents1.copy(), documents2.copy())
+def AND_NOT(documents2, documents1):
+	common_documents, comparisons = AND(documents2.copy(), documents1.copy())
 	documents = []
 
 	while len(documents1) > 0:
 		if len(common_documents) == 0:
-			documents.append(documents1[0])
-			documents1 = documents1[1:]
-		elif documents1[0] == common_documents[0]:
-			documents1 = documents1[1:]
-			common_documents = common_documents[1:]
+			documents.append(documents1[zerothInd])
+			documents1 = documents1[firstInd:]
+		elif documents1[zerothInd] == common_documents[zerothInd]:
+			documents1 = documents1[firstInd:]
+			common_documents = common_documents[firstInd]
 			comparisons = comparisons + 1
-		elif (documents1[0] < common_documents[0]):
-			documents.append(documents1[0])
-			documents1 = documents1[1:]
+		elif documents1[zerothInd] < common_documents[zerothInd]:
+			documents.append(documents1[zerothInd])
+			documents1 = documents1[firstInd:]
 			comparisons = comparisons + 1
 
 	return documents, comparisons
 
 
-def OR_NOT(documents1, documents2):
+def OR_NOT(documents2, documents1):
 	documents_not_having_2 = []
 	comparisons_all = 0
 	prev = 1
@@ -125,7 +125,7 @@ def OR_NOT(documents1, documents2):
 		documents_not_having_2.append(x)
 	documents_not_having_2 = sorted(documents_not_having_2)
 
-	documents, comparisons_or = OR(documents1.copy(), documents_not_having_2.copy())
+	documents, comparisons_or = OR(documents_not_having_2.copy(), documents1.copy())
 
 	return documents, comparisons_all + comparisons_or
 
@@ -161,30 +161,27 @@ for i in range(n):
 	if len(myPhrase) == len(list_q) + 1:
 		for i, op in enumerate(list_q):
 			if i == 0:  # for the first word in the query
-				if op == "AND":
-					documents, comparisons = AND(unigram_inverted_index[myPhrase[i]].copy(),
-											unigram_inverted_index[myPhrase[i + 1]].copy())
-				elif op == "OR":
-					documents, comparisons = OR(unigram_inverted_index[myPhrase[i]].copy(),
-										   unigram_inverted_index[myPhrase[i + 1]].copy())
-				elif op == "AND NOT":
-					documents, comparisons = AND_NOT(unigram_inverted_index[myPhrase[i]].copy(),
-												unigram_inverted_index[myPhrase[i + 1]].copy())
-				elif op == "OR NOT":
-					documents, comparisons = OR_NOT(unigram_inverted_index[myPhrase[i]].copy(),
-											   unigram_inverted_index[myPhrase[i + 1]].copy())
+				if "OR" is op:
+					documents, comparisons = OR(unigram_inverted_index[myPhrase[i + firstInd]].copy(), unigram_inverted_index[myPhrase[i]].copy())
+				elif "AND NOT" is op:
+					documents, comparisons = AND_NOT(unigram_inverted_index[myPhrase[i + firstInd]].copy(), unigram_inverted_index[myPhrase[i]].copy())
+				elif "AND" is op:
+					documents, comparisons = AND(unigram_inverted_index[myPhrase[i + firstInd]].copy(), unigram_inverted_index[myPhrase[i]].copy())
+					
+				elif "OR NOT" is op:
+					documents, comparisons = OR_NOT(unigram_inverted_index[myPhrase[i + firstInd]].copy(), unigram_inverted_index[myPhrase[i]].copy())
 				else:
 					print("Sorry, Invalid Query")
 
 			else:  # for the next query words, check with previous result got in documents
-				if op == "AND NOT":
-					documents, comparisons = AND_NOT(documents.copy(), unigram_inverted_index[myPhrase[i + 1]].copy())
-				elif op == "OR NOT":
-					documents, comparisons = OR_NOT(documents.copy(), unigram_inverted_index[myPhrase[i + 1]].copy())
-				elif op == "AND":
-					documents, comparisons = AND(documents.copy(), unigram_inverted_index[myPhrase[i + 1]].copy())
-				elif op == "OR":
-					documents, comparisons = OR(documents.copy(), unigram_inverted_index[myPhrase[i + 1]].copy())
+				if "AND NOT" is op:
+					documents, comparisons = AND_NOT(unigram_inverted_index[myPhrase[i + 1]].copy(), documents.copy())
+				elif "OR NOT" is op:
+					documents, comparisons = OR_NOT(unigram_inverted_index[myPhrase[i + 1]].copy(), documents.copy())
+				elif "AND" is op:
+					documents, comparisons = AND(unigram_inverted_index[myPhrase[i + 1]].copy(), documents.copy())
+				elif "OR" is op:
+					documents, comparisons = OR(unigram_inverted_index[myPhrase[i + 1]].copy(), documents.copy())
 				else:
 					print("Sorry, Invalid Query")
 
