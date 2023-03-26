@@ -1,0 +1,35 @@
+import os
+from nltk.tokenize import word_tokenize
+
+def jaccard_coefficient(query, file_path):
+    # tokenize query and file contents
+    query_tokens = set(word_tokenize(query.lower()))
+    with open(file_path, 'r') as f:
+        file_contents = f.read().lower()
+        file_tokens = set(word_tokenize(file_contents))
+    # calculate Jaccard coefficient
+    intersection = len(query_tokens.intersection(file_tokens))
+    union = len(query_tokens.union(file_tokens))
+    jaccard_coef = intersection / union
+    return jaccard_coef
+
+# set directory path where files are stored
+dir_path = r"C:\Users\91911\Desktop\IR-ASSIGNMENT2\CSE508_Winter2023_Dataset\CSE508_Winter2023_Dataset"
+
+# set query to search
+
+query = input("Write your query please: ")
+jaccard_dict = {}
+# iterate over files and calculate Jaccard coefficient for each file
+for file_name in os.listdir(dir_path):
+    if file_name.endswith(''):
+        file_path = os.path.join(dir_path, file_name)
+        jaccard_coef = jaccard_coefficient(query, file_path)
+        jaccard_dict[file_name] = jaccard_coef
+sorted_jaccard = dict(sorted(jaccard_dict.items(), key=lambda item: item[1], reverse=True))
+count = 0
+for file_name, jaccard_coef in sorted_jaccard.items():
+    print(f'{file_name}: {jaccard_coef}')
+    count += 1
+    if count == 10:
+        break
