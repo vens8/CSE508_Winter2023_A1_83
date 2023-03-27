@@ -253,20 +253,30 @@ def count_frequencies(class_list, tf_icf_features, k_features):
     class_two = {}
 
     # Loop through each class in the class list
-    for cls in class_list:
+    i = 0
+    while i < len(class_list):
+        cls = class_list[i]
         # Count the top K features for the current class
         count_top_k_features = Counter(k_features[cls])
 
         # Loop through each word in the TF-ICF features dictionary
-        for word in tf_icf_features:
+        j = 0
+        while j < len(tf_icf_features):
+            word = tf_icf_features[j]
             # Store the frequency of the word for the current class
-            class_one[(cls, word)] = count_top_k_features[word]
+            try:
+                class_one[(cls, word)] = count_top_k_features[word]
+            except KeyError:
+                pass
 
             # Add the frequency of the word to the total frequency for the current class
             try:
                 class_two[cls] += count_top_k_features[word]
             except KeyError:
                 class_two[cls] = count_top_k_features[word]
+
+            j += 1
+        i += 1
 
     return class_one, class_two
 
@@ -279,6 +289,8 @@ def frequency(w, l, classOne, classTwo):
 
 
 # Creating function for Naive-Bayes algorithm driver code
+import numpy as np
+
 def nbAlgoFunction(disctintWordsC, classTrainSplit, trainData, testData, allClasses, classOne, classTwo):
     truthValues = []
     predictedValues = []
@@ -287,23 +299,30 @@ def nbAlgoFunction(disctintWordsC, classTrainSplit, trainData, testData, allClas
         try:
             truthValues.append(testData[1][iterator])
             classWordProbability = []
-            for l in allClasses:
+            l_iterator = 0
+            while l_iterator < len(allClasses):
+                l = allClasses[l_iterator]
                 wordProbability = 0
-                for w in testData[0][iterator]:
+                w_iterator = 0
+                while w_iterator < len(testData[0][iterator]):
+                    w = testData[0][iterator][w_iterator]
                     try:
                         freq, count = frequency(w, l, classOne, classTwo)
                         pp = (freq + 1) / (count + disctintWordsC)
                         wordProbability += np.log(pp)
                     except KeyError:
                         pass
+                    w_iterator += 1
                 wordProbability += np.log(classTrainSplit[l] / trainData.shape[0])
                 classWordProbability.append(wordProbability)
+                l_iterator += 1
             predictedValues.append(allClasses[np.argmax(classWordProbability)])
         except IndexError:
             pass
         iterator += 1
 
     return truthValues, predictedValues
+
 
 
 def accuracy_evaluation(predicted_values, truth_values):
@@ -405,9 +424,9 @@ print(myTable)
 try:
     plt.plot(featureList[0:4], listPref[0:4], color='cyan', linewidth=4,
              marker=(5, 1), markerfacecolor='black', markersize=12)
+    plt.title("NUMBER OF FEATURES SELECTED V/S ACCURACY WITH SPLIT RATIO OF 50:50")
     plt.xlabel("FEATURE COUNT")
     plt.ylabel("ACCURACY")
-    plt.title("NUMBER OF FEATURES SELECTED V/S ACCURACY WITH SPLIT RATIO OF 50:50")
     plt.show()
 except Exception as e:
     print("An error occurred while plotting 50:50 graph:", e)
@@ -427,9 +446,9 @@ except Exception as e:
 try:
     plt.plot(featureList[8:12], listPref[8:12], color='blue', linewidth=4,
              marker=(5, 1), markerfacecolor='cyan', markersize=12)
-    plt.xlabel("FEATURES SELECTED")
-    plt.ylabel("ACCURACY")
     plt.title("NUMBER OF FEATURES SELECTED V/S ACCURACY WITH SPLIT RATIO OF 80:20")
+    plt.ylabel("ACCURACY")
+    plt.xlabel("FEATURES SELECTED")
     plt.show()
 except Exception as e:
     print("An error occurred while plotting 80:20 graph:", e)
@@ -441,9 +460,9 @@ try:
              [listPref[3] * 100, listPref[7] * 100, listPref[11] * 100],
              color='red', linewidth=4,
              marker=(5, 1), markerfacecolor='white', markersize=12)
-    plt.xlabel("PROPORTION OF TRAINING DATA")
-    plt.ylabel("ACCURACY")
     plt.title("ACCURACY VS TRAINING DATA SIZE GRAPH")
+    plt.ylabel("ACCURACY")
+    plt.xlabel("PROPORTION OF TRAINING DATA")
     plt.show()
 except Exception as e:
     print("An error occurred while plotting accuracy vs training data size graph:", e)
