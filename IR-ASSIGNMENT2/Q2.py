@@ -16,7 +16,6 @@ from nltk import word_tokenize
 from nltk.corpus import stopwords
 from prettytable import PrettyTable
 
-
 nltk.download('punkt')
 nltk.download('wordnet')
 nltk.download('stopwords')
@@ -24,13 +23,10 @@ nltk.download('stopwords')
 # Fetching stopwords
 stop_words = set(stopwords.words('english'))
 
-
 path = r"C:\Users\Rahul Maddula\PycharmProjects\IR\CSE508_Winter2023_Dataset\CSE508_Winter2023_Dataset"
 os.chdir(path)
 
 l1 = []
-
-
 
 
 def remove_stop(s):
@@ -152,7 +148,6 @@ try:
 except Exception as e:
     print("An error occurred:", e)
 
-
 # Creating file classes list
 fileClassesList = ['comp.graphics', 'rec.sport.hockey', 'sci.med', 'sci.space', 'talk.politics.misc']
 
@@ -166,8 +161,8 @@ def load_data():
 def split_data(data, ratio):
     # Split data into train and test sets
     random_boolean = np.random.rand(len(data)) < ratio
-    train_data = data[random_boolean]
-    test_data = data[~random_boolean]
+    train_data, test_data = data[random_boolean], data[~random_boolean]
+
     return train_data, test_data
 
 
@@ -291,6 +286,7 @@ def frequency(w, l, classOne, classTwo):
 # Creating function for Naive-Bayes algorithm driver code
 import numpy as np
 
+
 def nbAlgoFunction(disctintWordsC, classTrainSplit, trainData, testData, allClasses, classOne, classTwo):
     truthValues = []
     predictedValues = []
@@ -322,7 +318,6 @@ def nbAlgoFunction(disctintWordsC, classTrainSplit, trainData, testData, allClas
         iterator += 1
 
     return truthValues, predictedValues
-
 
 
 def accuracy_evaluation(predicted_values, truth_values):
@@ -417,52 +412,42 @@ while i < len(listTrainSize):
 
 print(myTable)
 
-
 # Plotting the graphs
 
-# On train:test ratio of 50:50
-try:
-    plt.plot(featureList[0:4], listPref[0:4], color='cyan', linewidth=4,
-             marker=(5, 1), markerfacecolor='black', markersize=12)
-    plt.title("NUMBER OF FEATURES SELECTED V/S ACCURACY WITH SPLIT RATIO OF 50:50")
-    plt.xlabel("FEATURE COUNT")
-    plt.ylabel("ACCURACY")
-    plt.show()
-except Exception as e:
-    print("An error occurred while plotting 50:50 graph:", e)
+# Import required libraries
+import matplotlib.pyplot as plt
+import numpy as np
 
-# On train:test ratio of 70:30
-try:
-    plt.plot(featureList[4:8], listPref[4:8], color='green', linewidth=4,
-             marker=(5, 1), markerfacecolor='yellow', markersize=12)
-    plt.xlabel("FEATURES SELECTED")
-    plt.ylabel("ACCURACY")
-    plt.title("NUMBER OF FEATURES SELECTED V/S ACCURACY WITH SPLIT RATIO OF 70:30")
-    plt.show()
-except Exception as e:
-    print("An error occurred while plotting 70:30 graph:", e)
+# Define train:test ratios and accuracy values
+train_test_ratios = [0.5, 0.7, 0.8]
+accuracies = [listPref[0:4], listPref[4:8], listPref[8:12]]
 
-# On train:test ratio of 80:20
-try:
-    plt.plot(featureList[8:12], listPref[8:12], color='blue', linewidth=4,
-             marker=(5, 1), markerfacecolor='cyan', markersize=12)
-    plt.title("NUMBER OF FEATURES SELECTED V/S ACCURACY WITH SPLIT RATIO OF 80:20")
-    plt.ylabel("ACCURACY")
-    plt.xlabel("FEATURES SELECTED")
-    plt.show()
-except Exception as e:
-    print("An error occurred while plotting 80:20 graph:", e)
+# Create subplots for each train:test ratio
+fig, axs = plt.subplots(1, 3, figsize=(15, 5))
 
-"""**Plotting graph to display the variation of Accuracy on different Training Data size used**"""
+# Loop through each subplot and plot accuracy values
+for i, ax in enumerate(axs):
+    ax.plot(featureList[i * 4:(i + 1) * 4], accuracies[i], color='cyan', linewidth=4,
+            marker=(5, 1), markerfacecolor='black', markersize=12)
+    ax.set_title("Number of features selected vs accuracy with split ratio of " + str(train_test_ratios[i]) + ":"
+                 + str(1 - train_test_ratios[i]))
+    ax.set_xlabel("Feature count")
+    ax.set_ylabel("Accuracy")
+    ax.set_ylim([min(accuracies[i]) - 0.1, max(accuracies[i]) + 0.1])
+    ax.text(0.05, 0.95, 'Accuracy values:\n' + str([round(x * 100, 2) for x in accuracies[i]]),
+            transform=ax.transAxes, fontsize=12, verticalalignment='top')
 
-try:
-    plt.plot([listTrainSize[3], listTrainSize[7], listTrainSize[11]],
-             [listPref[3] * 100, listPref[7] * 100, listPref[11] * 100],
-             color='red', linewidth=4,
-             marker=(5, 1), markerfacecolor='white', markersize=12)
-    plt.title("ACCURACY VS TRAINING DATA SIZE GRAPH")
-    plt.ylabel("ACCURACY")
-    plt.xlabel("PROPORTION OF TRAINING DATA")
-    plt.show()
-except Exception as e:
-    print("An error occurred while plotting accuracy vs training data size graph:", e)
+# Create plot for accuracy vs training data size
+plt.figure(figsize=(8, 6))
+plt.plot(listTrainSize[3::4], [x * 100 for x in listPref[3::4]], color='red', linewidth=4,
+         marker=(5, 1), markerfacecolor='white', markersize=12)
+plt.title("Accuracy vs training data size graph")
+plt.xlabel("Proportion of training data")
+plt.ylabel("Accuracy")
+plt.ylim([min(listPref) * 100 - 1, max(listPref) * 100 + 1])
+plt.text(0.05, 0.95, 'Accuracy values:\n' + str([round(x * 100, 2) for x in listPref[3::4]]),
+         transform=plt.gca().transAxes, fontsize=12, verticalalignment='top')
+
+# Display all plots
+plt.tight_layout()
+plt.show()
