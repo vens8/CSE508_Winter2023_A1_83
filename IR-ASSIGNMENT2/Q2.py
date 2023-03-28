@@ -141,14 +141,14 @@ def predict(test_counts, test_df, nb):
         return None
 
 
-def print_metrics(test_category, predicted):
+def print_metrics(test_category, predicted, size):
     try:
         accuracy = accuracy_score(test_category, predicted)
         print("Accuracy:", accuracy)
-        print("Prediction results for 70:30 split")
+        print(f"Prediction results for {int(100 - (size * 100))}:{int(size * 100)} split")
         print(classification_report(test_category, predicted))
         confusion = confusion_matrix(test_category, predicted)
-        print('Confusion matrix of 70:30 split')
+        print(f'Confusion matrix of {int(100 - (size * 100))}:{int(size * 100)} split')
         print(confusion)
         return confusion
     except Exception as e:
@@ -156,13 +156,13 @@ def print_metrics(test_category, predicted):
         return None
 
 
-def plot_confusion_matrix(confusion):
+def plot_confusion_matrix(confusion, size):
     try:
         plt.figure(figsize=(10, 8))
         sns.heatmap(confusion, annot=True, cmap='Blues', fmt='g')
         plt.xlabel('Predicted')
         plt.ylabel('Actual')
-        plt.title('Confusion matrix of 70:30 split')
+        plt.title(f'Confusion matrix of {int(100 - (size * 100))}:{int(size * 100)} split')
         plt.show()
     except Exception as e:
         print(f"An error occurred during confusion matrix plotting: {e}")
@@ -178,9 +178,9 @@ def processSplits(size, state):
     test_counts = count_vect.transform(test_df['Text'])
     predicted = predict(test_counts, test_df, nb)
     if predicted is not None:
-        confusion = print_metrics(test_df['Category'], predicted)
+        confusion = print_metrics(test_df['Category'], predicted, size)
         if confusion is not None:
-            plot_confusion_matrix(confusion)
+            plot_confusion_matrix(confusion, size)
 
 
 # 70:30 split
